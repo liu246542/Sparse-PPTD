@@ -8,7 +8,7 @@ import numpy as np
 
 class SimWorkers(object):
   """docstring for SimWorkers"""
-  def __init__(self, K, M, S):
+  def __init__(self, K, M, S, GT):
     super(SimWorkers, self).__init__()
     self.K = K
     self.M = M
@@ -17,11 +17,21 @@ class SimWorkers(object):
     self.SPL = [1] * S + [0] * (10 - S)
     for k in range(K):
       self.PHI[k] = [random.choice(self.SPL) for m in range(M)]
-    for i,j in zip(np.sum(self.PHI, axis = 0), np.sum(self.PHI, axis = 1)):
-      assert i > 0 and j > 0
+    def genPHI():
+      for k in range(K):
+        self.PHI[k] = [random.choice(self.SPL) for m in range(M)]
+      if np.prod(np.sum(self.PHI, axis = 0)) > 0 and np.prod(np.sum(self.PHI, axis = 1)) > 0:
+        return
+      else:
+        genPHI()
+    genPHI()
+    assert np.prod(np.sum(self.PHI, axis = 0)) > 0 and np.prod(np.sum(self.PHI, axis = 1)) > 0
+    # for i,j in zip(np.sum(self.PHI, axis = 0), np.sum(self.PHI, axis = 1)):
+      # assert np.prod(i) > 0 and np.prod(j) > 0
     for k in range(K):
       for m in range(M):
-        self.XM[k][m] = self.PHI[k][m] * round((random.random() * 10), 2) # 随机在 [0,10) 之间取值，此处可以自行修改
+        # self.XM[k][m] = self.PHI[k][m] * round((random.random() * 10), 2) # 随机在 [0,10) 之间取值，此处可以自行修改
+        self.XM[k][m] = self.PHI[k][m] * np.random.normal(loc = GT[m], scale = 2)
 
   def ss(self):
     Y = np.array([scipy.stats.chi2.ppf(0.05, k) for k in np.sum(self.PHI, axis = 1)])
@@ -81,7 +91,7 @@ class S0(object):
     return [self.sk.decrypt(wx) / self.sk.decrypt(wphi) for wx, wphi in zip(C5, C6)]
   # def resolve_tw(self, C):
     # self.tw = self.sk
-    
+
 class S1(object):
   """docstring for S1"""
   def __init__(self, K, M, C0, C_pack1, pk, tphi1, phi1, xm1):

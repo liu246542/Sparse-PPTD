@@ -104,14 +104,16 @@ class S1(object):
     self.C0 = C0
     self.C_pack1 = C_pack1
     self.pk = pk
+    self.bk = np.random.random(self.K)
   def up_weight(self, XT):
     dist = self.xm1 - XT
     C1 = np.sum(self.tphi1 * self.C_pack1[1], axis = 1)
     C2 = np.sum(np.multiply(2, dist) * (self.C_pack1[4] + self.tphi1 * self.C_pack1[0]), axis = 1)
     C3 = np.sum(dist ** 2 * self.C_pack1[2], axis = 1)
     C4 = np.array([self.pk.encrypt(m) for m in np.sum(self.tphi1 * dist ** 2, axis = 1)])
-    return self.C0 + C1 + C2 + C3 + C4
+    return self.bk * (self.C0 + C1 + C2 + C3 + C4)
   def up_truth(self, C_pack2):
-    C5 = np.sum(C_pack2[1] + np.tile(C_pack2[0], self.M).reshape(self.M, self.K).T * self.xm1, axis = 0)
-    C6 = np.sum(C_pack2[2] + np.tile(C_pack2[0], self.M).reshape(self.M, self.K).T * self.phi1, axis = 0)
+#     C5 = self.bk * np.sum(C_pack2[1] + np.tile(C_pack2[0], self.M).reshape(self.M, self.K).T * self.xm1, axis = 0)
+    C5 = np.sum( np.tile(self.bk, self.M).reshape(self.M, self.K).T *(C_pack2[1] + np.tile(C_pack2[0], self.M).reshape(self.M, self.K).T * self.xm1), axis = 0)
+    C6 = np.sum( np.tile(self.bk, self.M).reshape(self.M, self.K).T *(C_pack2[2] + np.tile(C_pack2[0], self.M).reshape(self.M, self.K).T * self.phi1), axis = 0)
     return [C5, C6]
